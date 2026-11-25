@@ -220,10 +220,15 @@ local Window = WindUI:CreateWindow({
                     <DynamicCodeBlock
                         lang="luau"
                         code={`Topbar = {
-    Height = 52,           -- Height of the topbar
-    ButtonsType = "Default" -- "Default" or "Mac" style
+    Height = 52,            -- Height of the topbar
+    ButtonsType = "Default", -- "Default" or "Mac" style
+    Alignment = "Left"      -- "Left" or "Right": side of the Mac buttons (Mac only)
 }`}
                     />
+                    <p>
+                        <code>Alignment</code> only affects the <code>Mac</code> buttons (WindUI Modded).
+                        The <code>Default</code> (Windows) buttons always stay on the right.
+                    </p>
                 </>
             ),
         },

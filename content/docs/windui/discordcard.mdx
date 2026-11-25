@@ -1,0 +1,311 @@
+---
+title: DiscordCard
+description: Show a Discord server card with a Join button
+---
+
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import TypeTable from '@/components/TypeTable';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { TriangleAlert } from 'lucide-react';
+
+## DiscordCard Element
+
+Shows a Discord server (icon, name, online/member counters, badges, description and banner) with a **Join** button, so users can join it without leaving the UI.  
+Everything is read from the invite, so you only need to give it an invite link.
+
+<Alert className="bg-yellow-300/30 dark:bg-yellow-950/80 text-yellow-700 dark:text-yellow-200/90 border-0">
+    <TriangleAlert />
+    <AlertTitle>WindUI Modded</AlertTitle>
+    <AlertDescription className="[&_p]:m-0">
+        <p>This element is part of the WindUI Modded fork. It needs an executor with <code>request</code>, <code>writefile</code> and <code>getcustomasset</code> for the images, and <code>setclipboard</code> for copying the link.</p>
+    </AlertDescription>
+</Alert>
+
+<Tabs defaultValue="basic">
+    <TabsList>
+        <TabsTrigger value="basic">Basic</TabsTrigger>
+        <TabsTrigger value="full">Full</TabsTrigger>
+    </TabsList>
+    <TabsContent value="basic">
+```luau
+Tab:DiscordCard({
+    Invite = "https://discord.gg/yourcode", -- or just "yourcode"
+})
+```
+    </TabsContent>
+    <TabsContent value="full">
+```luau
+local Card = Tab:DiscordCard({
+    Invite = "https://discord.gg/yourcode",
+
+    -- banner
+    ShowBanner = true,
+    BannerSource = "Auto",
+    BannerHeight = 90,
+
+    -- icon + status dot
+    IconShape = "Rounded",
+    IconSize = 64,
+    ShowStatusDot = true,
+    StatusDotPosition = "BottomRight",
+
+    -- counters
+    ShowOnline = true,
+    ShowMembers = true,
+    OnlineFormat = "{count} online",
+    MembersFormat = "{count} members",
+    ShortNumbers = false,
+
+    -- tags
+    ShowBadges = true,
+    Badges = {
+        Verified = true,
+        Boosts = { Title = "{count} Boosts" },
+    },
+
+    -- text and buttons
+    ShowDescription = true,
+    ShowCopyButton = true,
+    Highlight = true,
+    RefreshInterval = 60,
+
+    Callback = function(data, openedApp)
+        print("Join clicked", openedApp)
+    end,
+})
+```
+    </TabsContent>
+</Tabs>
+
+## How it works
+
+1. Asks the public Discord API about the invite: name, description, icon, banner, member count, online count and badges.
+2. Downloads the icon and the banner from the Discord CDN. Only real PNG files are accepted, error pages are ignored.
+3. **Join** first tries to open the invite in the Discord desktop app, which shows the usual "Join server" prompt. If the app is not open, it copies the invite link to the clipboard and shows a notification.
+4. **Copy link** always copies the link.
+
+## DiscordCard Parameters
+
+All parameters are optional except `Invite`.
+
+### General
+
+<TypeTable
+    data={[
+        { name: "Invite", type: "string", description: "Invite link or code. Accepts code, discord.gg/code, dsc.gg/code and https://discord.com/invite/code", default: "required" },
+        { name: "Title", type: "string?", description: "Fixed title. If omitted, the real server name is used", default: "server name" },
+        { name: "Desc", type: "string?", description: "Fixed description line. If set, the online/member counters are not shown", default: "nil" },
+        { name: "Tags", type: "table?", description: "Your own tags, same format as the Tag system: { { Title = \"Official\", Color = Color3.fromHex(\"#30ff6a\") } }", default: "nil" },
+        { name: "Callback", type: "function?", description: "Called when Join is clicked with (data, openedApp). data is the invite info from Discord, openedApp is true when the Discord app accepted the invite", default: "nil" },
+        { name: "Highlight", type: "boolean?", description: "Plays the light sweep animation over the card when Join is clicked", default: "false" },
+        { name: "RefreshInterval", type: "number?", description: "Refreshes the counters every N seconds (minimum 30)", default: "nil" },
+    ]}
+/>
+
+### Banner
+
+The banner is full-width, touches the edges of the card and fades into it. In `"Auto"` it tries the server profile banner, then the invite splash, then the normal server banner. If the server has none of them, the server brand color is used. If the banner is not the one you see in Discord, try the other sources.
+
+<TypeTable
+    data={[
+        { name: "ShowBanner", type: "boolean?", description: "Shows the full-width banner at the top of the card, fading into the card", default: "true" },
+        { name: "BannerSource", type: "string?", description: "Image used for the banner: \"Auto\", \"Profile\", \"Banner\", \"Splash\" or \"Icon\"", default: "\"Auto\"" },
+        { name: "BannerHeight", type: "number?", description: "Height of the banner area in pixels", default: "90" },
+    ]}
+/>
+
+### Icon and status dot
+
+<TypeTable
+    data={[
+        { name: "ShowIcon", type: "boolean?", description: "Shows the server icon", default: "true" },
+        { name: "IconShape", type: "string?", description: "Shape of the icon: \"Rounded\", \"Circle\" or \"Square\"", default: "\"Rounded\"" },
+        { name: "IconSize", type: "number?", description: "Size of the icon in pixels", default: "64" },
+        { name: "ShowStatusDot", type: "boolean?", description: "Shows the dot on the icon (visible when someone is online)", default: "true" },
+        { name: "StatusDotColor", type: "Color3?", description: "Color of the dot", default: "green" },
+        { name: "StatusDotRingColor", type: "Color3?", description: "Color of the ring around the dot", default: "dark" },
+        { name: "StatusDotSize", type: "number?", description: "Size of the dot in pixels", default: "16" },
+        { name: "StatusDotPosition", type: "string?", description: "Corner of the icon: \"BottomRight\", \"BottomLeft\", \"TopRight\" or \"TopLeft\"", default: "\"BottomRight\"" },
+        { name: "StatusDotAlways", type: "boolean?", description: "Also shows the dot when nobody is online", default: "false" },
+    ]}
+/>
+
+### Counters
+
+If both `ShowOnline` and `ShowMembers` are `false`, the counters line is hidden.
+
+<TypeTable
+    data={[
+        { name: "ShowOnline", type: "boolean?", description: "Shows the online counter", default: "true" },
+        { name: "ShowMembers", type: "boolean?", description: "Shows the member counter", default: "true" },
+        { name: "OnlineFormat", type: "string?", description: "Text of the online counter. {count} is replaced by the number", default: "\"{count} online\"" },
+        { name: "MembersFormat", type: "string?", description: "Text of the member counter. {count} is replaced by the number", default: "\"{count} members\"" },
+        { name: "OnlineColor", type: "Color3?", description: "Dot color of the online counter", default: "green" },
+        { name: "MembersColor", type: "Color3?", description: "Dot color of the member counter", default: "gray" },
+        { name: "ShowCounterDots", type: "boolean?", description: "Shows the colored dots before the counters", default: "true" },
+        { name: "ShortNumbers", type: "boolean?", description: "Shortens numbers (2,070 becomes 2.1K). Also used by the Boosts badge", default: "false" },
+    ]}
+/>
+
+### Tags (badges)
+
+The automatic badges are `Verified`, `Partnered`, `Community` and `Boosts`, and they only appear when the server really has them. Your own tags can still be added with the normal `Tags` parameter.
+
+<TypeTable
+    data={[
+        { name: "ShowBadges", type: "boolean?", description: "Set to false to hide all the automatic badges", default: "true" },
+        { name: "Badges", type: "table?", description: "Per-badge control: Verified, Partnered, Community and Boosts. Each one accepts false (hide) or a table to restyle it", default: "nil" },
+    ]}
+/>
+
+Each entry of `Badges` accepts `false` to hide it, or a table to restyle it:
+
+<TypeTable
+    data={[
+        { name: "Title", type: "string?", description: "Badge text. In Boosts, {count} is replaced by the number of boosts", default: "badge name" },
+        { name: "Color", type: "Color3 | string | table?", description: "Background color (Color3, theme color name or gradient table, like Tag)", default: "badge color" },
+        { name: "Icon", type: "string?", description: "Icon shown inside the badge", default: "nil" },
+        { name: "Radius", type: "number?", description: "Corner radius of the badge", default: "999" },
+        { name: "Border", type: "boolean?", description: "Draws the badge with an outline", default: "false" },
+    ]}
+/>
+
+```luau
+Badges = {
+    Verified = false,
+    Community = { Title = "Community", Color = Color3.fromRGB(64, 66, 73) },
+    Boosts = { Title = "{count} Boosts", Color = Color3.fromRGB(244, 127, 255) },
+}
+```
+
+### Text and buttons
+
+<TypeTable
+    data={[
+        { name: "ShowDescription", type: "boolean?", description: "Shows the server description under the counters", default: "true" },
+        { name: "DescriptionMaxLength", type: "number?", description: "Longer descriptions are cut with ...", default: "110" },
+        { name: "ButtonText", type: "string?", description: "Text of the main button", default: "\"Join\"" },
+        { name: "ButtonIcon", type: "string | boolean?", description: "Icon next to the button text (asset id). false removes it. If the asset can't be loaded a built-in icon is used", default: "\"rbxassetid://123235027784147\"" },
+        { name: "AccentColor", type: "Color3?", description: "Color of the Join button", default: "Discord green" },
+        { name: "ShowCopyButton", type: "boolean?", description: "Shows the gray copy-link button next to Join", default: "true" },
+        { name: "ButtonHeight", type: "number?", description: "Height of the buttons in pixels", default: "34" },
+    ]}
+/>
+
+## DiscordCard Methods
+
+<TypeTable
+    type={{
+        ":Refresh": {
+            type: 'function',
+            description: "Fetches the server info again (counters, title and description).",
+            args: {}
+        },
+        ":GetData": {
+            type: 'function',
+            description: "Returns the invite data received from Discord, or nil while it is still loading.",
+            args: {}
+        },
+        ":Join": {
+            type: 'function',
+            description: "Does the same as clicking the Join button.",
+            args: {}
+        },
+        ":CopyLink": {
+            type: 'function',
+            description: "Copies the invite link to the clipboard.",
+            args: {}
+        },
+        ":SetTitle": {
+            type: 'function',
+            description: "Updates the card title.",
+            args: {
+                "Title": { type: "string", description: "New title." },
+            }
+        },
+        ":SetDesc": {
+            type: 'function',
+            description: "Updates the line under the title. Counters are replaced on the next refresh.",
+            args: {
+                "Description": { type: "string", description: "New description text." },
+            }
+        },
+        ":Highlight": {
+            type: 'function',
+            description: "Plays the light sweep animation over the card.",
+            args: {}
+        },
+        ":Destroy": {
+            type: 'function',
+            description: "Removes the card.",
+            args: {}
+        },
+    }}
+/>
+
+`Card.HighlightOnJoin` can be set to `true` or `false` at any time to change what the `Highlight` parameter does.
+
+## Examples
+
+### Compact card
+
+```luau
+Tab:DiscordCard({
+    Invite = "yourcode",
+    ShowBanner = false,
+    ShowDescription = false,
+    ShowBadges = false,
+    ShowCopyButton = false,
+})
+```
+
+### Custom counters
+
+```luau
+Tab:DiscordCard({
+    Invite = "yourcode",
+    OnlineFormat = "{count} playing now",
+    MembersFormat = "{count} in the community",
+    OnlineColor = Color3.fromRGB(88, 101, 242),
+    ShortNumbers = true,
+})
+```
+
+### Round icon with the dot on the top
+
+```luau
+Tab:DiscordCard({
+    Invite = "yourcode",
+    IconShape = "Circle",
+    StatusDotPosition = "TopRight",
+    StatusDotAlways = true,
+})
+```
+
+### Your own tags
+
+```luau
+Tab:DiscordCard({
+    Invite = "yourcode",
+    Badges = { Community = false },
+    Tags = {
+        { Title = "Official", Color = Color3.fromHex("#30ff6a") },
+    },
+})
+```
+
+## Troubleshooting
+
+- **No images, only text:** the executor probably lacks `writefile` or `getcustomasset`, or the HTTP request failed.
+- **The banner is not the one shown in Discord:** change `BannerSource` (`"Profile"`, `"Splash"`, `"Banner"` or `"Icon"`).
+- **Empty space next to the Join text:** the `ButtonIcon` asset can't be loaded (for example a Decal id instead of an Image id, or a private asset). A built-in icon replaces it after a few seconds. Use an Image asset id to use your own.
+- **"Invite invalid or expired":** use a permanent invite, since temporary invites stop working when they expire.
+
+<span>Added by</span> <a><div className="flex flex-row items-center gap-2"><img src="https://github.com/dekyDied.png?size=64" className="rounded-full size-4 !my-0" /> dekyDied</div></a> <span>in</span> [WindUI Modded](https://github.com/dekyDied/WindUI-Modded)
+
+## Related Documentation
+
+- [Tab](./tab) - Tab container
+- [Tag](./tag) - Tag format used by `Tags` and `Badges`
+- [Paragraph](./paragraph) - Text display with buttons
+- [Window](./window) - Window and Topbar settings
